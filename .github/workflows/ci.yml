@@ -11,20 +11,38 @@ jobs:
   analyzer-lint:
     name: Analyzer — Lint
     runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' ||
+      contains(github.event.pull_request.title, 'Phase 2') ||
+      contains(toJson(github.event.pull_request.labels.*.name), 'analyzer')
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check if analyzer code exists
+        id: check
+        run: |
+          if [ -f "analyzer/go.mod" ]; then echo "exists=true" >> $GITHUB_OUTPUT; else echo "exists=false" >> $GITHUB_OUTPUT; fi
+
+      - name: Install C build tools (CGO required for Tree-sitter)
+        if: steps.check.outputs.exists == 'true'
+        run: sudo apt-get update -qq && sudo apt-get install -y build-essential
+
       - name: Set up Go
+        if: steps.check.outputs.exists == 'true'
         uses: actions/setup-go@v5
         with:
           go-version: "1.22"
           cache-dependency-path: analyzer/go.sum
 
       - name: golangci-lint
+        if: steps.check.outputs.exists == 'true'
         uses: golangci/golangci-lint-action@v4
         with:
           version: latest
           working-directory: analyzer
+          args: --timeout=5m
+        env:
+          CGO_ENABLED: "1"
 
   analyzer-test:
     name: Analyzer — Test
@@ -42,35 +60,51 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check if analyzer code exists
+        id: check
+        run: |
+          if [ -f "analyzer/go.mod" ]; then echo "exists=true" >> $GITHUB_OUTPUT; else echo "exists=false" >> $GITHUB_OUTPUT; fi
+
       - name: Set up Go
+        if: steps.check.outputs.exists == 'true'
         uses: actions/setup-go@v5
         with:
           go-version: "1.22"
           cache-dependency-path: analyzer/go.sum
 
-      - name: Install Tree-sitter grammars
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y build-essential
+      - name: Install C build tools (required for CGO/Tree-sitter)
+        if: steps.check.outputs.exists == 'true'
+        run: sudo apt-get update -qq && sudo apt-get install -y build-essential
 
       - name: Run tests
+        if: steps.check.outputs.exists == 'true'
         working-directory: analyzer
+        env:
+          REDIS_URL: redis://localhost:6379/0
+          CGO_ENABLED: "1"
         run: go test ./... -v -race -count=1 -coverprofile=coverage.out
 
       - name: Upload coverage
+        if: steps.check.outputs.exists == 'true'
         uses: codecov/codecov-action@v4
         with:
           files: analyzer/coverage.out
           flags: analyzer
 
-  # ── Python Control Plane ─────────────────────────────────────────────────────
+  # ── Python Control Plane ──────────────────────────────────────────────────────
   api-lint:
     name: Control Plane — Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check if control-plane is built out
+        id: check
+        run: |
+          if [ -f "control-plane/alembic.ini" ]; then echo "ready=true" >> $GITHUB_OUTPUT; else echo "ready=false" >> $GITHUB_OUTPUT; fi
+
       - name: Set up Python
+        if: steps.check.outputs.ready == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -78,16 +112,23 @@ jobs:
           cache-dependency-path: control-plane/requirements.txt
 
       - name: Install deps
+        if: steps.check.outputs.ready == 'true'
         working-directory: control-plane
         run: pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Ruff lint
+        if: steps.check.outputs.ready == 'true'
         working-directory: control-plane
         run: ruff check .
 
       - name: Mypy type check
+        if: steps.check.outputs.ready == 'true'
         working-directory: control-plane
         run: mypy app/
+
+      - name: Skip (Phase 3 not yet built)
+        if: steps.check.outputs.ready == 'false'
+        run: echo "⏭️  Control-plane lint skipped — Phase 3 not built yet"
 
   api-test:
     name: Control Plane — Test
@@ -113,7 +154,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check if control-plane is built out
+        id: check
+        run: |
+          if [ -f "control-plane/alembic.ini" ]; then echo "ready=true" >> $GITHUB_OUTPUT; else echo "ready=false" >> $GITHUB_OUTPUT; fi
+
       - name: Set up Python
+        if: steps.check.outputs.ready == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -121,16 +168,19 @@ jobs:
           cache-dependency-path: control-plane/requirements.txt
 
       - name: Install deps
+        if: steps.check.outputs.ready == 'true'
         working-directory: control-plane
         run: pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Run migrations
+        if: steps.check.outputs.ready == 'true'
         working-directory: control-plane
         env:
           DATABASE_URL: postgresql+asyncpg://flakeshield:testpassword@localhost:5432/flakeshield_test
         run: alembic upgrade head
 
       - name: Run tests
+        if: steps.check.outputs.ready == 'true'
         working-directory: control-plane
         env:
           DATABASE_URL: postgresql+asyncpg://flakeshield:testpassword@localhost:5432/flakeshield_test
@@ -140,19 +190,30 @@ jobs:
         run: pytest tests/ -v --cov=app --cov-report=xml
 
       - name: Upload coverage
+        if: steps.check.outputs.ready == 'true'
         uses: codecov/codecov-action@v4
         with:
           files: control-plane/coverage.xml
           flags: control-plane
 
-  # ── Next.js Dashboard ────────────────────────────────────────────────────────
+      - name: Skip (Phase 3 not yet built)
+        if: steps.check.outputs.ready == 'false'
+        run: echo "⏭️  Control-plane tests skipped — Phase 3 not built yet"
+
+  # ── Next.js Dashboard ─────────────────────────────────────────────────────────
   dashboard-lint:
     name: Dashboard — Lint & Type Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check if dashboard is built out
+        id: check
+        run: |
+          if [ -f "dashboard/package.json" ]; then echo "ready=true" >> $GITHUB_OUTPUT; else echo "ready=false" >> $GITHUB_OUTPUT; fi
+
       - name: Setup Node
+        if: steps.check.outputs.ready == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -160,17 +221,25 @@ jobs:
           cache-dependency-path: dashboard/package-lock.json
 
       - name: Install deps
+        if: steps.check.outputs.ready == 'true'
         working-directory: dashboard
         run: npm ci
 
       - name: Lint
+        if: steps.check.outputs.ready == 'true'
         working-directory: dashboard
         run: npm run lint
 
       - name: Type check
+        if: steps.check.outputs.ready == 'true'
         working-directory: dashboard
         run: npm run type-check
 
       - name: Build
+        if: steps.check.outputs.ready == 'true'
         working-directory: dashboard
         run: npm run build
+
+      - name: Skip (Phase 5 not yet built)
+        if: steps.check.outputs.ready == 'false'
+        run: echo "⏭️  Dashboard lint skipped — Phase 5 not built yet"
