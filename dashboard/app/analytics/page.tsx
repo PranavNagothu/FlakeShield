@@ -47,9 +47,9 @@ export default function AnalyticsPage() {
     fetch("http://localhost:8000/dashboard/top-patterns")
       .then((r) => r.json())
       .then((data: Pattern[]) => {
+        setFromMock(false); // API responded — go green
         if (data.length > 0) {
           setPatterns(data.map((p) => ({ ...p, color: CATEGORY_COLORS[p.rule_id] || "#4f8ef7" })));
-          setFromMock(false);
         }
       })
       .catch(() => {}); // stay on mock
