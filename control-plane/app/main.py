@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.db import engine, Base
-from app.api import webhooks, analysis, repos, teams, dashboard
+from app.api import webhooks, analysis, repos, teams, dashboard, patch
 
 
 @asynccontextmanager
@@ -41,6 +41,7 @@ app.include_router(analysis.router, prefix="/analysis", tags=["Analysis"])
 app.include_router(repos.router, prefix="/repos", tags=["Repos"])
 app.include_router(teams.router, prefix="/teams", tags=["Teams"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
+app.include_router(patch.router, prefix="/patch", tags=["AI Patch"])
 
 
 @app.get("/health", tags=["System"])
