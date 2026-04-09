@@ -13,11 +13,17 @@ from app.api import webhooks, analysis, repos, teams, dashboard
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+<<<<<<< Updated upstream
     # Startup: create tables (migrations handle prod, this covers dev/test)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
     # Shutdown: dispose DB pool
+=======
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+>>>>>>> Stashed changes
     await engine.dispose()
 
 
@@ -38,7 +44,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+<<<<<<< Updated upstream
 # Routers
+=======
+>>>>>>> Stashed changes
 app.include_router(webhooks.router, prefix="/webhooks", tags=["Webhooks"])
 app.include_router(analysis.router, prefix="/analysis", tags=["Analysis"])
 app.include_router(repos.router, prefix="/repos", tags=["Repos"])
