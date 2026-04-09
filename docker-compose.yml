@@ -10,10 +10,9 @@ services:
       POSTGRES_USER: flakeshield
       POSTGRES_PASSWORD: changeme
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U flakeshield"]
       interval: 5s
@@ -25,7 +24,7 @@ services:
     image: redis:7-alpine
     container_name: flakeshield-redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
@@ -71,14 +70,13 @@ services:
       REDIS_URL: redis://redis:6379/0
       ANALYZER_GRPC_HOST: analyzer
       ANALYZER_GRPC_PORT: "50051"
+      DATABASE_URL: postgresql+asyncpg://flakeshield:changeme@postgres:5432/flakeshield
     ports:
       - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_healthy
-      analyzer:
         condition: service_healthy
     volumes:
       - ./control-plane:/app
