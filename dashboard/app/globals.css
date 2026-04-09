@@ -1,0 +1,149 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #111118;
+  --bg-card: rgba(255, 255, 255, 0.04);
+  --bg-card-hover: rgba(255, 255, 255, 0.07);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-bright: rgba(255, 255, 255, 0.15);
+  --text-primary: #f0f0f5;
+  --text-secondary: #8888aa;
+  --text-muted: #555577;
+  --accent-blue: #4f8ef7;
+  --accent-purple: #9b6dff;
+  --accent-green: #22d3a0;
+  --accent-yellow: #f5c542;
+  --accent-red: #ff4d6d;
+  --accent-orange: #ff8c42;
+  --severity-critical: #ff4d6d;
+  --severity-high: #ff8c42;
+  --severity-medium: #f5c542;
+  --severity-low: #4f8ef7;
+  --glow-blue: 0 0 30px rgba(79, 142, 247, 0.15);
+  --glow-purple: 0 0 30px rgba(155, 109, 255, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Glass card */
+.glass {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-bright);
+}
+
+/* Severity badges */
+.badge-critical { background: rgba(255,77,109,0.15); color: var(--severity-critical); border: 1px solid rgba(255,77,109,0.3); }
+.badge-high { background: rgba(255,140,66,0.15); color: var(--severity-high); border: 1px solid rgba(255,140,66,0.3); }
+.badge-medium { background: rgba(245,197,66,0.15); color: var(--severity-medium); border: 1px solid rgba(245,197,66,0.3); }
+.badge-low { background: rgba(79,142,247,0.15); color: var(--severity-low); border: 1px solid rgba(79,142,247,0.3); }
+
+.severity-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Code font */
+.font-mono { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
+
+/* Animated gradient border */
+.gradient-border {
+  position: relative;
+  border-radius: 16px;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(79,142,247,0.4), rgba(155,109,255,0.4), rgba(34,211,160,0.4));
+}
+.gradient-border > * {
+  border-radius: 15px;
+  background: var(--bg-secondary);
+}
+
+/* Score ring colors */
+.score-critical { color: var(--severity-critical); }
+.score-high { color: var(--severity-high); }
+.score-medium { color: var(--severity-medium); }
+.score-low { color: var(--accent-green); }
+
+/* Pulse animation for live indicator */
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+.live-dot::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--accent-green);
+  animation: pulse-ring 1.5s ease infinite;
+}
+.live-dot {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-green);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* Fade in animation */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fadeInUp 0.4s ease forwards; }
+
+/* Shimmer for loading */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, var(--bg-card) 25%, rgba(255,255,255,0.05) 50%, var(--bg-card) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
