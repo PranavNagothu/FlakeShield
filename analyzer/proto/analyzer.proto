@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package analyzer;
+
+option go_package = "github.com/PranavNagothu/FlakeShield/analyzer/proto/pb";
+
+// ─── Request / Response ───────────────────────────────────────────────────────
+
+message AnalyzeRequest {
+  string repo_id     = 1; // GitHub repo identifier, e.g. "owner/repo"
+  string commit_sha  = 2; // Full commit SHA for cache keying
+  string file_path   = 3; // Relative path of the file inside the repo
+  string language    = 4; // "python" | "typescript"
+  string content     = 5; // Raw source code content to analyze
+}
+
+message AnalyzeResponse {
+  string          job_id          = 1; // UUID for this analysis run
+  string          file_path       = 2;
+  repeated Finding findings       = 3;
+  double          flakiness_score = 4; // 0.0 (clean) – 1.0 (highly flaky)
+  int64           parse_time_ms   = 5; // How long AST parsing took
+  bool            cache_hit       = 6; // true if result was served from Redis
+}
+
+// ─── Finding ─────────────────────────────────────────────────────────────────
+
+message Finding {
+  string   rule_id       = 1; // e.g. "TIMEOUT001"
+  string   category      = 2; // "async" | "state" | "timeout" | "order"
+  Severity severity      = 3;
+  int32    line_start     = 4;
+  int32    line_end       = 5;
+  string   snippet       = 6; // Exact offending source snippet
+  string   explanation   = 7; // Human-readable description of the problem
+  string   suggested_fix = 8; // AI or rule-based suggested fix (may be empty before AI layer)
+  double   confidence    = 9; // Detector confidence: 0.0 – 1.0
+}
+
+enum Severity {
+  SEVERITY_UNKNOWN  = 0;
+  SEVERITY_LOW      = 1;
+  SEVERITY_MEDIUM   = 2;
+  SEVERITY_HIGH     = 3;
+  SEVERITY_CRITICAL = 4;
+}
+
+// ─── Health ──────────────────────────────────────────────────────────────────
+
+message HealthRequest {}
+
+message HealthResponse {
+  string status  = 1; // "ok" | "degraded"
+  string version = 2;
+}
+
+// ─── Service ─────────────────────────────────────────────────────────────────
+
+service AnalyzerService {
+  // Analyze a single test file for flakiness patterns
+  rpc Analyze(AnalyzeRequest) returns (AnalyzeResponse);
+
+  // Health probe used by ECS + docker-compose
+  rpc Health(HealthRequest) returns (HealthResponse);
+}
