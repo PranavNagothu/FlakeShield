@@ -1,0 +1,73 @@
+name: CD — Build & Push Docker Images
+
+on:
+  push:
+    branches: [main]
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  build-and-push:
+    name: Build & Push to ECR
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    strategy:
+      matrix:
+        service:
+          - name: analyzer
+            context: ./analyzer
+            dockerfile: ./analyzer/Dockerfile
+          - name: control-plane
+            context: ./control-plane
+            dockerfile: ./control-plane/Dockerfile
+          - name: dashboard
+            context: ./dashboard
+            dockerfile: ./dashboard/Dockerfile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set image tag
+        id: meta
+        run: |
+          SHA_SHORT=$(echo $GITHUB_SHA | cut -c1-7)
+          echo "tag=$SHA_SHORT" >> $GITHUB_OUTPUT
+          echo "image=${{ steps.login-ecr.outputs.registry }}/flakeshield-${{ matrix.service.name }}:$SHA_SHORT" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ${{ steps.meta.outputs.image }} \
+            -t ${{ steps.login-ecr.outputs.registry }}/flakeshield-${{ matrix.service.name }}:latest \
+            -f ${{ matrix.service.dockerfile }} \
+            ${{ matrix.service.context }}
+
+      - name: Scan image for vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.meta.outputs.image }}
+          format: table
+          exit-code: "1"
+          severity: CRITICAL
+
+      - name: Push to ECR
+        run: |
+          docker push ${{ steps.meta.outputs.image }}
+          docker push ${{ steps.login-ecr.outputs.registry }}/flakeshield-${{ matrix.service.name }}:latest
+
+      - name: Output image URI
+        run: echo "Pushed ${{ steps.meta.outputs.image }}"

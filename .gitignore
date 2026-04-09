@@ -1,0 +1,58 @@
+# ── Go ──────────────────────────────────────────────
+bin/
+*.exe
+*.test
+*.out
+vendor/
+
+# ── Python ──────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+
+# ── Node / Next.js ─────────────────────────────────
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# ── Terraform ───────────────────────────────────────
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+.terraform.lock.hcl
+
+# ── Docker ──────────────────────────────────────────
+.docker/
+
+# ── Environment / Secrets ───────────────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+credentials
+
+# ── OS ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── IDE ─────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── Build artifacts ─────────────────────────────────
+build/
+dist/
