@@ -41,15 +41,15 @@ func (s Severity) String() string {
 
 // Finding represents one detected flakiness pattern in the source code.
 type Finding struct {
-	RuleID        string   // e.g. "TIMEOUT001"
-	Category      Category
-	Severity      Severity
-	LineStart     int
-	LineEnd       int
-	Snippet       string  // Exact source code slice that triggered the rule
-	Explanation   string  // Human-readable description of the problem
-	SuggestedFix  string  // Static suggestion; AI will enhance this in Phase 6
-	Confidence    float64 // 0.0–1.0: how certain the detector is
+	RuleID       string // e.g. "TIMEOUT001"
+	Category     Category
+	Severity     Severity
+	LineStart    int
+	LineEnd      int
+	Snippet      string  // Exact source code slice that triggered the rule
+	Explanation  string  // Human-readable description of the problem
+	SuggestedFix string  // Static suggestion; AI will enhance this in Phase 6
+	Confidence   float64 // 0.0–1.0: how certain the detector is
 }
 
 // Detector is the interface every flakiness rule must implement.

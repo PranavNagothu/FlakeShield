@@ -1,7 +1,8 @@
 // Package detectors — TimeoutDetector
 // Rules:
-//   TIMEOUT001: Hardcoded literal timeout value (time.sleep(5), setTimeout(fn, 3000))
-//   TIMEOUT002: Network/IO call without retry logic or timeout parameter
+//
+//	TIMEOUT001: Hardcoded literal timeout value (time.sleep(5), setTimeout(fn, 3000))
+//	TIMEOUT002: Network/IO call without retry logic or timeout parameter
 package detectors
 
 import (
@@ -41,13 +42,13 @@ func (d *TimeoutDetector) detectHardcodedSleep(root *sitter.Node, source []byte)
 	var findings []Finding
 
 	sleepFunctions := map[string]bool{
-		"time.sleep":            true,
-		"asyncio.sleep":         true,
-		"sleep":                 true,
-		"setTimeout":            true,
-		"setInterval":           true,
-		"waitForTimeout":        true,
-		"page.waitForTimeout":   true,
+		"time.sleep":             true,
+		"asyncio.sleep":          true,
+		"sleep":                  true,
+		"setTimeout":             true,
+		"setInterval":            true,
+		"waitForTimeout":         true,
+		"page.waitForTimeout":    true,
 		"browser.waitForTimeout": true,
 	}
 
@@ -103,8 +104,9 @@ func (d *TimeoutDetector) detectHardcodedSleep(root *sitter.Node, source []byte)
 // detectNoRetry finds network/IO calls that have no retry logic and no timeout param.
 //
 // Pattern (Python):
-//   requests.get(url)              → TIMEOUT002 (no timeout= kwarg)
-//   requests.post(url, data=body)  → TIMEOUT002 (no timeout= kwarg)
+//
+//	requests.get(url)              → TIMEOUT002 (no timeout= kwarg)
+//	requests.post(url, data=body)  → TIMEOUT002 (no timeout= kwarg)
 func (d *TimeoutDetector) detectNoRetry(root *sitter.Node, source []byte) []Finding {
 	var findings []Finding
 
@@ -170,9 +172,9 @@ func isSleepSuffix(fnText string) bool {
 
 func generateTimeoutFix(fn, duration string) string {
 	templates := map[string]string{
-		"time.sleep":  "poll_until_ready(timeout=%s, interval=0.1)",
+		"time.sleep":    "poll_until_ready(timeout=%s, interval=0.1)",
 		"asyncio.sleep": "await poll_until_ready_async(timeout=%s, interval=0.1)",
-		"setTimeout":  "await waitForCondition(() => condition, { timeout: %s })",
+		"setTimeout":    "await waitForCondition(() => condition, { timeout: %s })",
 	}
 	if tmpl, ok := templates[fn]; ok {
 		return fmt.Sprintf(tmpl, duration)

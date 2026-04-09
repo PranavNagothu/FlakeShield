@@ -1,7 +1,8 @@
 // Package detectors — AsyncDetector
 // Rules:
-//   ASYNC001: async function calls blocking I/O (time.sleep in async def)
-//   ASYNC002: coroutine created but not awaited (missing await keyword)
+//
+//	ASYNC001: async function calls blocking I/O (time.sleep in async def)
+//	ASYNC002: coroutine created but not awaited (missing await keyword)
 package detectors
 
 import (
@@ -29,8 +30,9 @@ func (d *AsyncDetector) Analyze(root *sitter.Node, source []byte) []Finding {
 // These block the event loop and cause non-deterministic timing.
 //
 // Pattern (Python):
-//   async def test_something():
-//       time.sleep(5)   ← ASYNC001
+//
+//	async def test_something():
+//	    time.sleep(5)   ← ASYNC001
 func (d *AsyncDetector) detectBlockingInAsync(root *sitter.Node, source []byte) []Finding {
 	var findings []Finding
 	d.walkNode(root, func(node *sitter.Node) {
@@ -76,8 +78,9 @@ func (d *AsyncDetector) detectBlockingInAsync(root *sitter.Node, source []byte) 
 // This causes the coroutine to never execute, leading to silent test failures.
 //
 // Pattern (Python):
-//   async def test_something():
-//       fetch_data()   ← ASYNC002 (should be: await fetch_data())
+//
+//	async def test_something():
+//	    fetch_data()   ← ASYNC002 (should be: await fetch_data())
 func (d *AsyncDetector) detectUnawaited(root *sitter.Node, source []byte) []Finding {
 	var findings []Finding
 	d.walkNode(root, func(node *sitter.Node) {

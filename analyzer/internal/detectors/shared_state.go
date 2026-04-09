@@ -1,7 +1,8 @@
 // Package detectors — SharedStateDetector
 // Rules:
-//   STATE001: Module-level mutable variable (list/dict/set) that persists across tests
-//   STATE002: Class-level mutable attribute shared across test instances
+//
+//	STATE001: Module-level mutable variable (list/dict/set) that persists across tests
+//	STATE002: Class-level mutable attribute shared across test instances
 package detectors
 
 import (
@@ -29,9 +30,10 @@ func (d *SharedStateDetector) Analyze(root *sitter.Node, source []byte) []Findin
 // detectModuleLevelMutableState finds module-scope assignments to mutable containers.
 //
 // Pattern (Python):
-//   _cache = {}         → STATE001
-//   RESULTS = []        → STATE001
-//   shared_db = set()   → STATE001
+//
+//	_cache = {}         → STATE001
+//	RESULTS = []        → STATE001
+//	shared_db = set()   → STATE001
 //
 // These persist across test invocations unless explicitly cleared.
 func (d *SharedStateDetector) detectModuleLevelMutableState(root *sitter.Node, source []byte) []Finding {
@@ -106,9 +108,10 @@ func (d *SharedStateDetector) detectModuleLevelMutableState(root *sitter.Node, s
 // inside test classes, which are shared across all test method instances.
 //
 // Pattern (Python):
-//   class TestMyService(unittest.TestCase):
-//       shared_results = []   → STATE002
-//       db_records = {}       → STATE002
+//
+//	class TestMyService(unittest.TestCase):
+//	    shared_results = []   → STATE002
+//	    db_records = {}       → STATE002
 func (d *SharedStateDetector) detectClassLevelMutableAttr(root *sitter.Node, source []byte) []Finding {
 	var findings []Finding
 

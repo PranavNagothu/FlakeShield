@@ -1,7 +1,8 @@
 // Package detectors — OrderDependencyDetector
 // Rules:
-//   ORDER001: Test function that accesses module-level state set by another test
-//   ORDER002: setUp/tearDown missing for a stateful resource (file, DB, socket)
+//
+//	ORDER001: Test function that accesses module-level state set by another test
+//	ORDER002: setUp/tearDown missing for a stateful resource (file, DB, socket)
 package detectors
 
 import (
@@ -30,9 +31,10 @@ func (d *OrderDependencyDetector) Analyze(root *sitter.Node, source []byte) []Fi
 // but lack corresponding cleanup — a teardown/close/cleanup call.
 //
 // Pattern (Python):
-//   def test_write():
-//       f = open("output.txt", "w")   ← ORDER002: no f.close() or context manager
-//       f.write("data")
+//
+//	def test_write():
+//	    f = open("output.txt", "w")   ← ORDER002: no f.close() or context manager
+//	    f.write("data")
 func (d *OrderDependencyDetector) detectMissingTeardown(root *sitter.Node, source []byte) []Finding {
 	var findings []Finding
 
@@ -102,14 +104,15 @@ func (d *OrderDependencyDetector) detectMissingTeardown(root *sitter.Node, sourc
 // that were likely set by a *different* test — creating an implicit ordering dependency.
 //
 // Pattern (Python):
-//   SHARED_TOKEN = None
 //
-//   def test_login():
-//       global SHARED_TOKEN
-//       SHARED_TOKEN = login()    ← sets global
+//	SHARED_TOKEN = None
 //
-//   def test_profile():
-//       resp = get_profile(SHARED_TOKEN)  ← ORDER001: depends on test_login running first
+//	def test_login():
+//	    global SHARED_TOKEN
+//	    SHARED_TOKEN = login()    ← sets global
+//
+//	def test_profile():
+//	    resp = get_profile(SHARED_TOKEN)  ← ORDER001: depends on test_login running first
 func (d *OrderDependencyDetector) detectOrderDependentAccess(root *sitter.Node, source []byte) []Finding {
 	var findings []Finding
 

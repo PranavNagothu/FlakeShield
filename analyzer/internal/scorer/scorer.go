@@ -1,9 +1,10 @@
 // Package scorer computes a composite flakiness risk score from a set of findings.
 // Score is a float64 in [0.0, 1.0]:
-//   0.00-0.25: Low risk    (green)
-//   0.25-0.50: Medium risk (yellow)
-//   0.50-0.75: High risk   (orange)
-//   0.75-1.00: Critical    (red)
+//
+//	0.00-0.25: Low risk    (green)
+//	0.25-0.50: Medium risk (yellow)
+//	0.50-0.75: High risk   (orange)
+//	0.75-1.00: Critical    (red)
 package scorer
 
 import (

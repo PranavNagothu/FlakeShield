@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	keyPrefix = "flakeshield:analysis"
+	keyPrefix  = "flakeshield:analysis"
 	defaultTTL = 24 * time.Hour
 )
 
