@@ -7,6 +7,8 @@ import {
 } from "recharts";
 import { Wifi, WifiOff } from "lucide-react";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 const MOCK_PATTERNS = [
   { rule_id: "TIMEOUT001", count: 482, color: "#ff8c42" },
   { rule_id: "STATE001", count: 391, color: "#ff4d6d" },
@@ -44,7 +46,7 @@ export default function AnalyticsPage() {
   const [fromMock, setFromMock] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:8000/dashboard/top-patterns")
+    fetch(`${API_BASE}/dashboard/top-patterns`)
       .then((r) => r.json())
       .then((data: Pattern[]) => {
         setFromMock(false); // API responded — go green

@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { Shield, Zap, AlertTriangle, TrendingDown, Activity, Wifi, WifiOff } from "lucide-react";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 interface OverviewData {
   total_repos: number;
   total_analyses: number;
@@ -59,7 +61,7 @@ export default function OverviewPage() {
 
   useEffect(() => {
     // 1. Try real API first (works locally when backend is running)
-    fetch("http://localhost:8000/dashboard/overview")
+    fetch(`${API_BASE}/dashboard/overview`)
       .then((r) => r.json())
       .then((d: OverviewData) => {
         setData(d);

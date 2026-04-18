@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Play, Sparkles, AlertTriangle, CheckCircle, Clock, Copy, ChevronDown, ChevronUp } from "lucide-react";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 const SAMPLE_CODE = `import time
 import requests
 
@@ -163,7 +165,7 @@ export default function PlaygroundPage() {
     setPatch(null);
 
     try {
-      const res = await fetch("http://localhost:8000/patch", {
+      const res = await fetch(`${API_BASE}/patch`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code, language, findings }),
