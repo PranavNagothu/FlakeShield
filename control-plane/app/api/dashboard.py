@@ -128,10 +128,10 @@ async def get_overview(db: AsyncSession = Depends(get_db)):
 async def record_playground_session(payload: dict, db: AsyncSession = Depends(get_db)):
     """
     Called by the Playground UI after every analysis (real or mock).
-    Creates a lightweight AnalysisJob record so Overview stats are real.
+    Persists job summary + individual findings so Overview AND Analytics show real data.
     """
     import uuid as _uuid
-    from app.models import AnalysisJob, Repo
+    from app.models import AnalysisJob, Repo, Finding
 
     # Get or create a synthetic "playground" repo
     playground_repo = (await db.execute(
@@ -153,9 +153,28 @@ async def record_playground_session(payload: dict, db: AsyncSession = Depends(ge
         repo_id=playground_repo.id,
         commit_sha=payload.get("sha", str(_uuid.uuid4())[:8]),
         status="completed",
-        total_findings=int(payload.get("findings", 0)),
+        total_findings=int(payload.get("findings_count", 0)),
         flakiness_score=float(payload.get("score", 0.0)),
     )
     db.add(job)
+    await db.flush()
+
+    # Persist individual findings for Analytics top-patterns chart
+    for f in payload.get("findings", []):
+        finding = Finding(
+            job_id=job.id,
+            file_path="playground",
+            rule_id=f.get("rule_id", "UNKNOWN"),
+            category=f.get("category", "unknown"),
+            severity=f.get("severity", "medium"),
+            line_start=int(f.get("line_start", 0)),
+            line_end=int(f.get("line_end", 0)),
+            snippet=f.get("snippet", ""),
+            explanation=f.get("explanation", ""),
+            flakiness_score=float(payload.get("score", 0.0)),
+            confidence=float(f.get("confidence", 0.8)),
+        )
+        db.add(finding)
+
     await db.commit()
     return {"recorded": True}

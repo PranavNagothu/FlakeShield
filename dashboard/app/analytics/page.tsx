@@ -49,12 +49,15 @@ export default function AnalyticsPage() {
     fetch(`${API_BASE}/dashboard/top-patterns`)
       .then((r) => r.json())
       .then((data: Pattern[]) => {
-        setFromMock(false); // API responded — go green
         if (data.length > 0) {
+          // Real data in DB — show it and go green
           setPatterns(data.map((p) => ({ ...p, color: CATEGORY_COLORS[p.rule_id] || "#4f8ef7" })));
+          setFromMock(false);
         }
+        // If empty array — stay on MOCK_PATTERNS with yellow badge
+        // (DB has no findings yet — user needs to run analyses)
       })
-      .catch(() => {}); // stay on mock
+      .catch(() => {}); // network error — stay on mock
   }, []);
 
   // Derive pie data from patterns
@@ -89,7 +92,7 @@ export default function AnalyticsPage() {
           }}
         >
           {fromMock ? <WifiOff size={12} /> : <Wifi size={12} />}
-          {fromMock ? "Demo data — start API to see live data" : "Live from API"}
+          {fromMock ? "Demo data — use Playground to generate real data" : "Live from API"}
         </div>
       </div>
 

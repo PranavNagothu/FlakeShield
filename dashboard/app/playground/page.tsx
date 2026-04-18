@@ -133,7 +133,21 @@ export default function PlaygroundPage() {
     fetch(`${API_BASE}/dashboard/playground/record`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sha, findings: foundFindings.length, score: foundScore }),
+      body: JSON.stringify({
+        sha,
+        findings_count: foundFindings.length,
+        score: foundScore,
+        findings: foundFindings.map((f) => ({
+          rule_id: f.RuleID,
+          category: f.Category,
+          severity: String(f.Severity),
+          line_start: f.LineStart,
+          line_end: f.LineEnd,
+          snippet: f.Snippet,
+          explanation: f.Explanation,
+          confidence: f.Confidence,
+        })),
+      }),
     }).catch(() => {}); // silent fail — localStorage is the backup
   }
 
