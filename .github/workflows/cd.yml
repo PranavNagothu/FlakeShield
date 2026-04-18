@@ -1,8 +1,12 @@
 name: CD — Build & Push Docker Images
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:  # manual only — Railway handles auto-deploy on push
+    inputs:
+      confirm:
+        description: "Deploy to AWS ECR? (requires AWS secrets)"
+        required: true
+        default: "no"
 
 env:
   AWS_REGION: us-east-1
