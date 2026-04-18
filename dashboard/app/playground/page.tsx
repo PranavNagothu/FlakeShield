@@ -104,6 +104,8 @@ export default function PlaygroundPage() {
   const [patchCopied, setPatchCopied] = useState(false);
 
   function persistAnalysis(foundFindings: typeof MOCK_FINDINGS, foundScore: number) {
+    const sha = Math.random().toString(36).slice(2, 9);
+    // 1. Save to localStorage for instant UI update
     try {
       const stored = JSON.parse(localStorage.getItem("fs_stats") || "{}");
       const analyses = (stored.total_analyses || 0) + 1;
@@ -112,7 +114,7 @@ export default function PlaygroundPage() {
       recent.unshift({
         repo: "playground",
         pr: null,
-        sha: Math.random().toString(36).slice(2, 9),
+        sha,
         score: foundScore,
         findings: foundFindings.length,
         status: "completed",
@@ -127,6 +129,12 @@ export default function PlaygroundPage() {
         })
       );
     } catch {}
+    // 2. Also persist to Railway Postgres DB (fire-and-forget — don't await)
+    fetch(`${API_BASE}/dashboard/playground/record`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sha, findings: foundFindings.length, score: foundScore }),
+    }).catch(() => {}); // silent fail — localStorage is the backup
   }
 
   async function analyze() {

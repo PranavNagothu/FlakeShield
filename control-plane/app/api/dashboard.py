@@ -122,3 +122,40 @@ async def get_overview(db: AsyncSession = Depends(get_db)):
         "ci_minutes_saved": ci_minutes_saved,
         "recent_jobs": recent_jobs,
     }
+
+
+@router.post("/playground/record")
+async def record_playground_session(payload: dict, db: AsyncSession = Depends(get_db)):
+    """
+    Called by the Playground UI after every analysis (real or mock).
+    Creates a lightweight AnalysisJob record so Overview stats are real.
+    """
+    import uuid as _uuid
+    from app.models import AnalysisJob, Repo
+
+    # Get or create a synthetic "playground" repo
+    playground_repo = (await db.execute(
+        select(Repo).where(Repo.github_repo_id == 0)
+    )).scalar_one_or_none()
+
+    if not playground_repo:
+        playground_repo = Repo(
+            github_repo_id=0,
+            owner="playground",
+            name="interactive-demo",
+            default_branch="main",
+            is_active=True,
+        )
+        db.add(playground_repo)
+        await db.flush()
+
+    job = AnalysisJob(
+        repo_id=playground_repo.id,
+        commit_sha=payload.get("sha", str(_uuid.uuid4())[:8]),
+        status="completed",
+        total_findings=int(payload.get("findings", 0)),
+        flakiness_score=float(payload.get("score", 0.0)),
+    )
+    db.add(job)
+    await db.commit()
+    return {"recorded": True}

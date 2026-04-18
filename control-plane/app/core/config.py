@@ -8,7 +8,12 @@ class Settings(BaseSettings):
     # App
     SECRET_KEY: str = "dev-secret-change-in-prod"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8081"]
+    CORS_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "http://localhost:8081",
+        "https://flakeshield.vercel.app",
+        "https://flakeshield-production.up.railway.app",
+    ]
 
     # Database
     DATABASE_URL: str = "postgresql+asyncpg://flakeshield:changeme@localhost:5432/flakeshield"
