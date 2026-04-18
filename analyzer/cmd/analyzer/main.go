@@ -88,7 +88,7 @@ func newHTTPServer(port string, c *cache.Cache) *http.Server {
 
 func handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
+	_ = json.NewEncoder(w).Encode(map[string]string{
 		"status":  "ok",
 		"service": "flakeshield-analyzer",
 		"version": version,
@@ -144,7 +144,7 @@ func handleAnalyze(c *cache.Cache) http.HandlerFunc {
 			if err == nil && cached != nil {
 				w.Header().Set("Content-Type", "application/json")
 				w.Header().Set("X-Cache", "HIT")
-				json.NewEncoder(w).Encode(map[string]interface{}{
+				_ = json.NewEncoder(w).Encode(map[string]interface{}{
 					"job_id":          cached.JobID,
 					"file_path":       cached.FilePath,
 					"findings":        cached.Findings,
@@ -208,7 +208,7 @@ func handleAnalyze(c *cache.Cache) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("X-Cache", "MISS")
 		w.Header().Set("X-Parse-Time-Ms", fmt.Sprintf("%d", parseMs))
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 
 		log.Info().
 			Str("file", req.FilePath).
