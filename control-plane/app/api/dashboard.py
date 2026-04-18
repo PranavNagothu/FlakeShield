@@ -79,3 +79,46 @@ async def get_repos_summary(db: AsyncSession = Depends(get_db)):
         }
         for row in result
     ]
+
+
+@router.get("/overview")
+async def get_overview(db: AsyncSession = Depends(get_db)):
+    repo_count = (await db.execute(select(func.count(Repo.id)))).scalar() or 0
+    job_count = (await db.execute(select(func.count(AnalysisJob.id)))).scalar() or 0
+    finding_count = (await db.execute(select(func.count(Finding.id)))).scalar() or 0
+    # Estimate: each finding caught saves ~6 CI minutes on average
+    ci_minutes_saved = finding_count * 6
+
+    recent_result = await db.execute(
+        select(
+            AnalysisJob.id,
+            AnalysisJob.commit_sha,
+            AnalysisJob.pr_number,
+            AnalysisJob.status,
+            AnalysisJob.flakiness_score,
+            AnalysisJob.total_findings,
+            Repo.name.label("repo_name"),
+        )
+        .outerjoin(Repo, Repo.id == AnalysisJob.repo_id)
+        .order_by(AnalysisJob.triggered_at.desc())
+        .limit(5)
+    )
+    recent_jobs = [
+        {
+            "repo": row.repo_name or "playground",
+            "pr": row.pr_number,
+            "sha": (row.commit_sha or "")[:7],
+            "score": round(float(row.flakiness_score or 0), 3),
+            "findings": row.total_findings or 0,
+            "status": row.status.value if row.status else "completed",
+        }
+        for row in recent_result
+    ]
+
+    return {
+        "total_repos": repo_count,
+        "total_analyses": job_count,
+        "total_findings": finding_count,
+        "ci_minutes_saved": ci_minutes_saved,
+        "recent_jobs": recent_jobs,
+    }
