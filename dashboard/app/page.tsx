@@ -58,6 +58,7 @@ export default function OverviewPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // 1. Try real API first (works locally when backend is running)
     fetch("http://localhost:8000/dashboard/overview")
       .then((r) => r.json())
       .then((d: OverviewData) => {
@@ -65,9 +66,22 @@ export default function OverviewPage() {
         setFromMock(false);
       })
       .catch(() => {
-        // API offline — keep demo data, set mock flag
-        setData(DEMO_DATA);
-        setFromMock(true);
+        // 2. API offline — merge demo baseline with localStorage data from Playground
+        try {
+          const stored = JSON.parse(localStorage.getItem("fs_stats") || "{}");
+          const hasRealData = (stored.total_analyses || 0) > 0;
+          setData({
+            total_repos: DEMO_DATA.total_repos,
+            total_analyses:  hasRealData ? stored.total_analyses   : DEMO_DATA.total_analyses,
+            total_findings:  hasRealData ? stored.total_findings   : DEMO_DATA.total_findings,
+            ci_minutes_saved: hasRealData ? stored.ci_minutes_saved : DEMO_DATA.ci_minutes_saved,
+            recent_jobs:     hasRealData ? stored.recent_jobs      : DEMO_DATA.recent_jobs,
+          });
+          setFromMock(!hasRealData);
+        } catch {
+          setData(DEMO_DATA);
+          setFromMock(true);
+        }
       })
       .finally(() => setLoading(false));
   }, []);

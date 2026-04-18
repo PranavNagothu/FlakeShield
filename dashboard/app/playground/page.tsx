@@ -101,6 +101,32 @@ export default function PlaygroundPage() {
   const [patchExpanded, setPatchExpanded] = useState(true);
   const [patchCopied, setPatchCopied] = useState(false);
 
+  function persistAnalysis(foundFindings: typeof MOCK_FINDINGS, foundScore: number) {
+    try {
+      const stored = JSON.parse(localStorage.getItem("fs_stats") || "{}");
+      const analyses = (stored.total_analyses || 0) + 1;
+      const totalFindings = (stored.total_findings || 0) + foundFindings.length;
+      const recent = stored.recent_jobs || [];
+      recent.unshift({
+        repo: "playground",
+        pr: null,
+        sha: Math.random().toString(36).slice(2, 9),
+        score: foundScore,
+        findings: foundFindings.length,
+        status: "completed",
+      });
+      localStorage.setItem(
+        "fs_stats",
+        JSON.stringify({
+          total_analyses: analyses,
+          total_findings: totalFindings,
+          ci_minutes_saved: totalFindings * 6,
+          recent_jobs: recent.slice(0, 5),
+        })
+      );
+    } catch {}
+  }
+
   async function analyze() {
     setLoading(true);
     setFindings([]);
@@ -118,12 +144,14 @@ export default function PlaygroundPage() {
         setFindings(data.findings || []);
         setScore(data.flakiness_score);
         setParseMs(data.parse_time_ms);
+        persistAnalysis(data.findings || [], data.flakiness_score);
       } else throw new Error();
     } catch {
       await new Promise((r) => setTimeout(r, 900));
       setFindings(MOCK_FINDINGS);
       setScore(0.91);
       setParseMs(42);
+      persistAnalysis(MOCK_FINDINGS, 0.91);
     } finally {
       setLoading(false);
     }
