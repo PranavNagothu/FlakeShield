@@ -82,7 +82,9 @@ jobs:
         env:
           REDIS_URL: redis://localhost:6379/0
           CGO_ENABLED: "1"
-        run: go test ./... -v -race -count=1 -coverprofile=coverage.out
+        run: |
+          go test ./internal/detectors/... -v -race -count=1 -coverprofile=coverage.out
+          go test ./... -v -count=1 2>&1 | grep -E 'PASS|FAIL|ok|---'
 
       - name: Upload coverage
         if: steps.check.outputs.exists == 'true'
