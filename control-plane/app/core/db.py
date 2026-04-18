@@ -3,8 +3,13 @@ from sqlalchemy.orm import DeclarativeBase
 
 from app.core.config import settings
 
+# Railway injects DATABASE_URL as postgresql:// — asyncpg needs postgresql+asyncpg://
+_db_url = settings.DATABASE_URL
+if _db_url.startswith("postgresql://") and "+asyncpg" not in _db_url:
+    _db_url = _db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    _db_url,
     pool_size=10,
     max_overflow=20,
     pool_pre_ping=True,
