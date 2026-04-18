@@ -48,8 +48,8 @@ def _apply_mock_fixes(code: str, findings: List[FindingInput], language: str) ->
 
     if language == "python":
         header_lines = []
-        has_asyncio = any("asyncio" in l for l in lines)
-        has_pytest = any("pytest" in l for l in lines)
+        has_asyncio = any("asyncio" in line for line in lines)
+        has_pytest = any("pytest" in line for line in lines)
 
         if "ASYNC001" in rule_ids and not has_asyncio:
             header_lines.append("import asyncio\n")

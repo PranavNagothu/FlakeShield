@@ -1,8 +1,11 @@
+version: "2"
+
 run:
   timeout: 5m
+  go: "1.22"
 
 linters:
-  disable-all: true
+  default: none
   enable:
     - errcheck
     - gosimple
@@ -21,9 +24,11 @@ linters-settings:
 
 issues:
   exclude-rules:
+    # Ignore shadowing in test files
     - path: _test\.go
       linters:
         - govet
+    # Allow unused parameters in interface implementations
     - linters:
         - unused
       text: "is unused"

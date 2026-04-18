@@ -54,7 +54,7 @@ async def list_repos(
     db: AsyncSession = Depends(get_db),
     _user: dict = Depends(get_current_user),
 ):
-    result = await db.execute(select(Repo).where(Repo.is_active == True))
+    result = await db.execute(select(Repo).where(Repo.is_active is True))
     return result.scalars().all()
 
 

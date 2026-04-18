@@ -64,7 +64,7 @@ async def get_repos_summary(db: AsyncSession = Depends(get_db)):
             func.coalesce(func.sum(AnalysisJob.total_findings), 0).label("total_findings"),
         )
         .outerjoin(AnalysisJob, AnalysisJob.repo_id == Repo.id)
-        .where(Repo.is_active == True)
+        .where(Repo.is_active is True)
         .group_by(Repo.id, Repo.owner, Repo.name)
         .order_by(func.coalesce(func.avg(AnalysisJob.flakiness_score), 0).desc())
     )
